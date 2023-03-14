@@ -4,7 +4,7 @@ default: all
 GTK_PACKAGES=gdk-pixbuf-2.0 gtk+-3.0
 GTK_CFLAGS=$(shell pkg-config --cflags $(GTK_PACKAGES))
 GTK_LIBS=$(shell pkg-config --libs $(GTK_PACKAGES))
-
+ 
 # PROFILING_CFLAGS=-pg
 CXXFLAGS=-Wall -g -std=c++11 -O2 $(PROFILING_CFLAGS) $(GTK_CFLAGS)
 
