@@ -1,3 +1,4 @@
 balls
 balls.o
 *.o
+.vscode/
