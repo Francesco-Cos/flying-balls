@@ -6,7 +6,7 @@ GTK_CFLAGS=$(shell pkg-config --cflags $(GTK_PACKAGES))
 GTK_LIBS=$(shell pkg-config --libs $(GTK_PACKAGES))
 
 # PROFILING_CFLAGS=-pg
-CXXFLAGS=-Wall -g -O2 $(PROFILING_CFLAGS) $(GTK_CFLAGS)
+CXXFLAGS=-Wall -g -std=c++11 -O2 $(PROFILING_CFLAGS) $(GTK_CFLAGS)
 
 LIBS=$(GTK_LIBS) -lm
 
