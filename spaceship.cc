@@ -62,6 +62,8 @@ void spaceship_draw (cairo_t * cr) {
 }
 
 void spaceship_control (double dx, double dy) {
+    if (abs(dx) > abs(dy)) dy = 0;
+    else dx = 0;
     spaceship.angle -= dx/4;
     if (spaceship.angle < 0)
 	spaceship.angle += 2*M_PI;
