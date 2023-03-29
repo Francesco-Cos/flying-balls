@@ -23,6 +23,7 @@ public:
 
 extern ball * balls;
 extern unsigned int n_balls;
+extern unsigned int fluid;
 
 extern unsigned int radius_min;
 extern unsigned int radius_max;
