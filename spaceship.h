@@ -3,6 +3,8 @@
 
 extern ball spaceship;
 
+extern unsigned int spaceship_present;
+
 extern void spaceship_init_state ();
 extern void spaceship_update_state ();
 extern void spaceship_control (double dx, double dy);

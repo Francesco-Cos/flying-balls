@@ -44,7 +44,7 @@ void update_state () {
 	check_collisions();
     for(unsigned int i = 0; i < n_balls; ++i)
 	ball_update_state(balls + i);
-    spaceship_update_state();
+    if (spaceship_present) spaceship_update_state();
 }
 
 /* Graphics System
@@ -107,6 +107,29 @@ param_controls gravity_control = {
     .keyboard_input = gravity_controls_keyboard_input,
 };
 
+gint shoot_ball_keyboard_input (GdkEventKey *event) {
+    switch(event->keyval) {
+    case GDK_KEY_Up:
+	gravity_change (0, -10);
+	return TRUE;
+    case GDK_KEY_Down:
+	gravity_change (0, 10);
+	return TRUE;
+    case GDK_KEY_Left:
+	gravity_change (-10, 0);
+	return TRUE;
+    case GDK_KEY_Right:
+	gravity_change (10, 0);
+	return TRUE;
+    }
+    return FALSE;
+}
+
+param_controls shoot_ball = {
+    .draw = shoot_draw,
+    .keyboard_input = shoot_ball_keyboard_input,
+};
+
 gint restitution_coefficient_controls_keyboard_input (GdkEventKey *event) {
     switch(event->keyval) {
     case GDK_KEY_Up:
@@ -158,7 +181,7 @@ gboolean draw_frame (GtkWidget * widget, cairo_t *cr, gpointer data) {
 	param_control->draw (cr);
     gravity_draw_visible_field (cr);
     balls_draw (cr);
-    spaceship_draw (cr);
+	if (spaceship_present) spaceship_draw (cr);
     return FALSE;
 }
 
@@ -192,6 +215,10 @@ gint keyboard_input (GtkWidget *widget, GdkEventKey *event) {
     case GDK_KEY_G:
     case GDK_KEY_g:
 	param_control_activate (&gravity_control);
+	return TRUE;
+	case GDK_KEY_B:
+    case GDK_KEY_b:
+	param_control_activate (&shoot_ball);
 	return TRUE;
     case GDK_KEY_P:
     case GDK_KEY_p:
@@ -296,6 +323,8 @@ int main (int argc, const char *argv[]) {
 	if (sscanf(argv[i], "%dx%d", &w, &h) == 2)
 	    continue;
 	if (sscanf(argv[i], "n=%u", &n_balls) == 1)
+	    continue;
+	if (sscanf(argv[i], "spaceship=%u", &spaceship_present) == 1)
 	    continue;
 	if (sscanf(argv[i], "fconst=%lf,%lf", &fa, &fb) == 2) {
 	    gravity_constant_field (fa,fb);

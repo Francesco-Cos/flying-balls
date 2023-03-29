@@ -42,6 +42,7 @@ extern void ball_update_state (ball * p);
 extern void ball_ball_collision (ball * p, ball * q);
 extern void ball_reposition (ball * b);
 extern void balls_draw (cairo_t * cr);
+extern void shoot_draw (cairo_t * cr);
 
 extern void restitution_coefficient_draw (cairo_t * cr);
 extern void restitution_coefficient_set (double c);

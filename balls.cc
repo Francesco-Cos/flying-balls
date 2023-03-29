@@ -23,6 +23,7 @@ unsigned int n_balls = 50;
 // C_r == 0.0 ==> perfectly inelastic collisions
 //
 static double C_r = 1.0;
+// static vec2d shoot_d{.x = 0, .y = 20};
 
 void restitution_coefficient_set (double c) {
     C_r = c;
@@ -104,9 +105,9 @@ void ball_walls_collision (ball * p) {
 	    p->position.y -= p->position.y + p->radius - height;
 	    p->velocity.y = -C_r*p->velocity.y;
 	}
-    } else if (p->position.y < p->radius) { /* top wall */
+    } else if (p->position.y < 0) { /* top wall */
 	if (p->velocity.y < 0) {
-	    p->position.y += p->radius - p->position.y;
+	    p->position.y += height;
 	    p->velocity.y = -C_r*p->velocity.y;
 	}
     }
@@ -114,7 +115,6 @@ void ball_walls_collision (ball * p) {
 
 void ball_update_state (ball * p) {
     vec2d g = gravity_vector (p);
-
     p->position += delta*p->velocity + delta*delta*g/2.0;
     p->velocity += delta*g;
     p->angle += delta*p->v_angle;
@@ -282,6 +282,15 @@ void ball::draw (cairo_t * cr) const {
 void balls_draw (cairo_t * cr) {
     for (const ball * b = balls; b != balls + n_balls; ++b)
 	b->draw(cr);
+}
+
+void shoot_draw (cairo_t * cr) {
+	cairo_save(cr);
+	cairo_new_path(cr);
+	cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+	cairo_arc(cr, width/2, height, 10, 0, 2*M_PI);
+	cairo_fill(cr);
+	cairo_restore(cr);
 }
 
 static void balls_destroy_faces () {

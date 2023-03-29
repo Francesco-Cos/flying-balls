@@ -5,6 +5,7 @@
 #include "game.h"
 
 struct ball spaceship;
+unsigned int spaceship_present = 1;
 double spaceship_thrust = 0;
 int spaceship_thrust_countdown = 0;
 int spaceship_thrust_init = 50;
