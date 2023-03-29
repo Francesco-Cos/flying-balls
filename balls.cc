@@ -17,6 +17,8 @@ unsigned int v_min = 0;
 unsigned int v_angle_min = 0;
 unsigned int v_angle_max = 100;
 
+vec2d o{.x = 0, .y = 0};
+
 ball *balls = nullptr;
 unsigned int n_balls = 50;
 unsigned int border_particles = 0;
@@ -101,14 +103,11 @@ void balls_init_state()
 	}
 	if (fluid)
 	{
-		vec2d v;
-		v.x = 0;
-		v.y = 0;
 		for (unsigned int i = n_balls - border_particles; i < n_balls; ++i)
 		{
 			balls[i].position.x = i % 2 ? border : width - border;
 			balls[i].position.y = border + rand() % h;
-			balls[i].velocity = v;
+			balls[i].velocity = o;
 			balls[i].border = 1;
 			balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
 			balls[i].v_angle = 0;
@@ -205,7 +204,7 @@ void ball_ball_collision(ball *p, ball *q)
 		double d = sqrt(d2);
 		vec2d pq_overlap = (r - d) / d * pq;
 		p->position -= pq_overlap * mq / m_total;
-		q->position += pq_overlap * mp / m_total;
+		q->position += q->border ? o : pq_overlap * mp / m_total;
 
 		double f = vec2d::dot(pq_v, pq);
 
@@ -213,7 +212,7 @@ void ball_ball_collision(ball *p, ball *q)
 		{
 			f /= d2 * (mp + mq);
 			p->velocity += 2 * C_r * mq * f * pq;
-			q->velocity -= 2 * C_r * mp * f * pq;
+			q->velocity -= q->border ? o : 2 * C_r * mp * f * pq;
 		}
 	}
 }
