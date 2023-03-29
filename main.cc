@@ -324,8 +324,10 @@ int main (int argc, const char *argv[]) {
 	    continue;
 	if (sscanf(argv[i], "n=%u", &n_balls) == 1)
 	    continue;
-	if (sscanf(argv[i], "fluid=%u", &fluid) == 1)
+	if (sscanf(argv[i], "fluid=%u", &fluid) == 1) {
+		border_particles = 10;
 	    continue;
+	}
 	if (sscanf(argv[i], "spaceship=%u", &spaceship_present) == 1)
 	    continue;
 	if (sscanf(argv[i], "fconst=%lf,%lf", &fa, &fb) == 2) {

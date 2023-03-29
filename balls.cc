@@ -9,6 +9,7 @@
 
 unsigned int radius_min = 5;
 unsigned int radius_max = 10;
+unsigned int radius_particle = 15;
 
 unsigned int v_max = 100;
 unsigned int v_min = 0;
@@ -18,6 +19,7 @@ unsigned int v_angle_max = 100;
 
 ball *balls = nullptr;
 unsigned int n_balls = 50;
+unsigned int border_particles = 0;
 unsigned int fluid = 0;
 
 // Coefficient of restitution:
@@ -86,15 +88,32 @@ void balls_init_state()
 	int w = width < 2 * border ? 1 : width - 2 * border;
 	int h = height < 2 * border ? 1 : height - 2 * border;
 
-	for (unsigned int i = 0; i < n_balls; ++i)
+	for (unsigned int i = 0; i < n_balls - border_particles; ++i)
 	{
 		balls[i].position.x = border + rand() % w;
 		balls[i].position.y = border + rand() % h;
 		balls[i].velocity = random_velocity();
-		balls[i].radius = radius_min + rand() % (radius_max + 1 - radius_min);
+		balls[i].border = 0;
+		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
 		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
 		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
 		balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
+	}
+	if (fluid)
+	{
+		vec2d v;
+		v.x = 0;
+		v.y = 0;
+		for (unsigned int i = n_balls - border_particles; i < n_balls; ++i)
+		{
+			balls[i].position.x = i % 2 ? border : width - border;
+			balls[i].position.y = border + rand() % h;
+			balls[i].velocity = v;
+			balls[i].border = 1;
+			balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
+			balls[i].v_angle = 0;
+			balls[i].angle = 0;
+		}
 	}
 }
 
@@ -156,15 +175,18 @@ void ball_walls_collision(ball *p)
 
 void ball_update_state(ball *p)
 {
-	vec2d g = gravity_vector(p);
-	p->position += delta * p->velocity + delta * delta * g / 2.0;
-	p->velocity += delta * g;
-	p->angle += delta * p->v_angle;
-	while (p->angle >= 2 * M_PI)
-		p->angle -= 2 * M_PI;
-	while (p->angle < 0)
-		p->angle += 2 * M_PI;
-	ball_walls_collision(p);
+	if (!p->border)
+	{
+		vec2d g = gravity_vector(p);
+		p->position += delta * p->velocity + delta * delta * g / 2.0;
+		p->velocity += delta * g;
+		p->angle += delta * p->v_angle;
+		while (p->angle >= 2 * M_PI)
+			p->angle -= 2 * M_PI;
+		while (p->angle < 0)
+			p->angle += 2 * M_PI;
+		ball_walls_collision(p);
+	}
 }
 
 void ball_ball_collision(ball *p, ball *q)

@@ -9,6 +9,7 @@ class ball_face;
 
 class ball {
 public:
+    unsigned int border;
     unsigned int radius;
     vec2d position;
     vec2d velocity;
@@ -23,10 +24,12 @@ public:
 
 extern ball * balls;
 extern unsigned int n_balls;
+extern unsigned int border_particles;
 extern unsigned int fluid;
 
 extern unsigned int radius_min;
 extern unsigned int radius_max;
+extern unsigned int radius_particle;
 
 extern unsigned int v_max;
 extern unsigned int v_min;
