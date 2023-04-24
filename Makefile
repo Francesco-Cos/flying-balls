@@ -1,6 +1,8 @@
 .PHONY: default
 default: all
 
+N:=100
+
 GTK_PACKAGES=gdk-pixbuf-2.0 gtk+-3.0
 GTK_CFLAGS=$(shell pkg-config --cflags $(GTK_PACKAGES))
 GTK_LIBS=$(shell pkg-config --libs $(GTK_PACKAGES))
@@ -24,7 +26,7 @@ stats.o: stats.cc
 
 .PHONY: run
 run: balls
-	./balls
+	./balls fluid=1 n=$N
 
 .PHONY: all
 all: $(PROGS)

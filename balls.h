@@ -13,6 +13,7 @@ public:
     unsigned int radius;
     vec2d position;
     vec2d velocity;
+    vec2d force;
 
     double angle;
     double v_angle;
@@ -26,6 +27,10 @@ extern ball * balls;
 extern unsigned int n_balls;
 extern unsigned int border_particles;
 extern unsigned int fluid;
+extern unsigned int show_fluid;
+extern unsigned int rc;
+extern unsigned int max_rep;
+extern double sigma;
 
 extern unsigned int radius_min;
 extern unsigned int radius_max;
@@ -33,6 +38,8 @@ extern unsigned int radius_particle;
 
 extern unsigned int v_max;
 extern unsigned int v_min;
+extern double eps;
+
 
 extern unsigned int v_angle_min;
 extern unsigned int v_angle_max;
@@ -42,7 +49,10 @@ extern int face_rotation;
 
 extern void balls_init ();
 extern void balls_destroy ();
+extern void ball_update_pos (ball * p);
 extern void ball_update_state (ball * p);
+extern vec2d ball_calculate_force (ball * p);
+extern vec2d ball_calculate_distance (vec2d d1, vec2d d2);
 extern void ball_ball_collision (ball * p, ball * q);
 extern void ball_reposition (ball * b);
 extern void balls_draw (cairo_t * cr);

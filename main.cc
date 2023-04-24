@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
+#include <iostream>
 
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
@@ -42,6 +43,8 @@ void (*check_collisions)() = check_collisions_simple;
 void update_state () {
     if (check_collisions)
 	check_collisions();
+	for(unsigned int i = 0; i < n_balls; ++i)
+	ball_update_pos(balls + i);
     for(unsigned int i = 0; i < n_balls; ++i)
 	ball_update_state(balls + i);
     if (spaceship_present) spaceship_update_state();
@@ -326,6 +329,9 @@ int main (int argc, const char *argv[]) {
 	    continue;
 	if (sscanf(argv[i], "fluid=%u", &fluid) == 1) {
 		border_particles = 10;
+	    continue;
+	}
+	if (sscanf(argv[i], "showf=%u", &show_fluid) == 1) {
 	    continue;
 	}
 	if (sscanf(argv[i], "spaceship=%u", &spaceship_present) == 1)

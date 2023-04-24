@@ -65,6 +65,10 @@ public:
     static double cross (const vec2d & a, const vec2d & b) {
 	return a.x*b.x + a.y*b.y;
     }
+
+    static double module (const vec2d & a) {
+        return sqrt(a.x * a.x + a.y * a.y);
+    }
 };
 
 static inline vec2d operator * (double l, const vec2d & v) {
