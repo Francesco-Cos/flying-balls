@@ -46,7 +46,8 @@ void update_state () {
 	for(unsigned int i = 0; i < n_balls; ++i)
 	ball_update_pos(balls + i);
     for(unsigned int i = 0; i < n_balls; ++i)
-	ball_update_state(balls + i);
+	if(fluid) ball_update_state_fluid(balls + i);
+	else ball_update_state(balls + i);
     if (spaceship_present) spaceship_update_state();
 }
 
@@ -184,7 +185,7 @@ gboolean draw_frame (GtkWidget * widget, cairo_t *cr, gpointer data) {
 	param_control->draw (cr);
     gravity_draw_visible_field (cr);
     balls_draw (cr);
-	if (spaceship_present) spaceship_draw (cr);
+	if (!fluid) spaceship_draw (cr);
     return FALSE;
 }
 

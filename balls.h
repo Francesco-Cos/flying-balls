@@ -51,6 +51,7 @@ extern void balls_init ();
 extern void balls_destroy ();
 extern void ball_update_pos (ball * p);
 extern void ball_update_state (ball * p);
+extern void ball_update_state_fluid (ball * p);
 extern vec2d ball_calculate_force (ball * p);
 extern vec2d ball_calculate_distance (vec2d d1, vec2d d2);
 extern void ball_ball_collision (ball * p, ball * q);

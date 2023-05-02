@@ -19,13 +19,12 @@ unsigned int v_max = 100;
 unsigned int v_min = 0;
 double eps = 1.0;
 
-
 unsigned int v_angle_min = 0;
 unsigned int v_angle_max = 100;
 
 vec2d o{.x = 0, .y = 0};
 std::default_random_engine generator;
-std::normal_distribution<double> distribution(0,1.0);
+std::normal_distribution<double> distribution(0, 1.0);
 
 ball *balls = nullptr;
 unsigned int n_balls = 50;
@@ -131,6 +130,44 @@ void balls_init_state()
 	}
 }
 
+void ball_top_bottom_collision(ball *p)
+{
+	if (p->position.y + p->radius > height)
+	{ /* bottom wall */
+		if (p->velocity.y > 0)
+		{
+			p->position.y -= p->position.y + p->radius - height;
+			p->velocity.y = -C_r * p->velocity.y;
+		}
+	}
+	else if (p->position.y < p->radius)
+	{ /* top wall */
+		if (p->velocity.y < 0)
+		{
+			p->position.y += p->radius - p->position.y;
+			p->velocity.y = -C_r * p->velocity.y;
+		}
+	}
+}
+
+void ball_top_bottom_collision_fluid(ball *p)
+{
+	if (p->position.y > height)
+	{ /* bottom wall */
+		if (p->velocity.y > 0)
+		{
+			p->position.y = 0;
+		}
+	}
+	else if (p->position.y < 0)
+	{ /* top wall */
+		if (p->velocity.y < 0)
+		{
+			p->position.y = height;
+		}
+	}
+}
+
 void ball_walls_collision(ball *p)
 {
 	if (p->position.x + p->radius > width)
@@ -151,39 +188,11 @@ void ball_walls_collision(ball *p)
 	}
 	if (fluid)
 	{
-		if (p->position.y > height)
-		{ /* bottom wall */
-			if (p->velocity.y > 0)
-			{
-				p->position.y = 0;
-			}
-		}
-		else if (p->position.y < 0)
-		{ /* top wall */
-			if (p->velocity.y < 0)
-			{
-				p->position.y = height;
-			}
-		}
+		ball_top_bottom_collision_fluid(p);
 	}
 	else
 	{
-		if (p->position.y + p->radius > height)
-		{ /* bottom wall */
-			if (p->velocity.y > 0)
-			{
-				p->position.y -= p->position.y + p->radius - height;
-				p->velocity.y = -C_r * p->velocity.y;
-			}
-		}
-		else if (p->position.y < p->radius)
-		{ /* top wall */
-			if (p->velocity.y < 0)
-			{
-				p->position.y += p->radius - p->position.y;
-				p->velocity.y = -C_r * p->velocity.y;
-			}
-		}
+		ball_top_bottom_collision(p);
 	}
 }
 
@@ -199,18 +208,21 @@ vec2d ball_calculate_force(ball *p)
 		vec2d sub_v = p->velocity - balls[i].velocity;
 		double rij = vec2d::module(sub_p);
 		double wr = rc - rij;
-		double wd = wr*wr;
+		double wd = wr * wr;
 		vec2d Rij = rij < eps ? o : sub_p / rij;
 		Fc += wr > 0 ? max_rep * wr * Rij : o;
-		Fd += wr > 0 ? -(sigma*sigma)/2 * wd * vec2d::dot(Rij, sub_v) * Rij: o;
-		Fr += wr > 0 ? sigma * wr * n * Rij: o;
+		Fd += wr > 0 ? -(sigma * sigma) / 2 * wd * vec2d::dot(Rij, sub_v) * Rij : o;
+		Fr += wr > 0 ? sigma * wr * n * Rij : o;
 	}
 	return isnan(Fc.x) ? o : Fc + Fd + Fr;
 }
 
-void ball_update_pos(ball *p) {
-	if (fluid) {
-		if (!p->border) {
+void ball_update_pos(ball *p)
+{
+	if (fluid)
+	{
+		if (!p->border)
+		{
 			p->position += delta * p->velocity + delta * delta * p->force / 2.0;
 		}
 	}
@@ -218,67 +230,68 @@ void ball_update_pos(ball *p) {
 
 void ball_update_state(ball *p)
 {
-	if (fluid)
+	vec2d g = gravity_vector(p);
+	p->position += delta * p->velocity + delta * delta * g / 2.0;
+	p->velocity += delta * g;
+	p->angle += delta * p->v_angle;
+	while (p->angle >= 2 * M_PI)
+		p->angle -= 2 * M_PI;
+	while (p->angle < 0)
+		p->angle += 2 * M_PI;
+	ball_walls_collision(p);
+}
+
+void ball_update_state_fluid(ball *p)
+{
+	if (!p->border)
 	{
-		if (!p->border)
-		{
-			vec2d old_v = p->velocity;
-			p->velocity += delta * p->force / 2;
-			vec2d old_f = p->force;
-			p->force = ball_calculate_force(p);
-			p->velocity = old_v + delta * (p->force + old_f) / 2; 
-			p->angle += delta * p->v_angle;
-			while (p->angle >= 2 * M_PI)
-				p->angle -= 2 * M_PI;
-			while (p->angle < 0)
-				p->angle += 2 * M_PI;
-		} else {
-			p->position += delta * p->velocity;
-		}
-		ball_walls_collision(p);
-	}
-	else
-	{
-		vec2d g = gravity_vector(p);
-		p->position += delta * p->velocity + delta * delta * g / 2.0;
-		p->velocity += delta * g;
+		vec2d old_v = p->velocity;
+		p->velocity += delta * p->force / 2;
+		vec2d old_f = p->force;
+		p->force = ball_calculate_force(p);
+		p->velocity = old_v + delta * (p->force + old_f) / 2;
 		p->angle += delta * p->v_angle;
 		while (p->angle >= 2 * M_PI)
 			p->angle -= 2 * M_PI;
 		while (p->angle < 0)
 			p->angle += 2 * M_PI;
-		ball_walls_collision(p);
 	}
+	else
+	{
+		p->position += delta * p->velocity;
+	}
+	ball_walls_collision(p);
 }
 
 void ball_ball_collision(ball *p, ball *q)
 {
-	if (!fluid) {
-	vec2d pq = q->position - p->position;
-	double d2 = vec2d::dot(pq, pq);
-	double r = p->radius + q->radius;
-	if (d2 <= r * r)
+	if (!fluid)
 	{
-		vec2d pq_v = q->velocity - p->velocity;
-
-		double mp = p->radius * p->radius;
-		double mq = q->radius * q->radius;
-		double m_total = mp + mp;
-
-		double d = sqrt(d2);
-		vec2d pq_overlap = (r - d) / d * pq;
-		p->position -= pq_overlap * mq / m_total;
-		q->position += q->border ? o : pq_overlap * mp / m_total;
-
-		double f = vec2d::dot(pq_v, pq);
-
-		if (f < 0)
+		vec2d pq = q->position - p->position;
+		double d2 = vec2d::dot(pq, pq);
+		double r = p->radius + q->radius;
+		if (d2 <= r * r)
 		{
-			f /= d2 * (mp + mq);
-			p->velocity += 2 * C_r * mq * f * pq;
-			q->velocity -= q->border ? o : 2 * C_r * mp * f * pq;
+			vec2d pq_v = q->velocity - p->velocity;
+
+			double mp = p->radius * p->radius;
+			double mq = q->radius * q->radius;
+			double m_total = mp + mp;
+
+			double d = sqrt(d2);
+			vec2d pq_overlap = (r - d) / d * pq;
+			p->position -= pq_overlap * mq / m_total;
+			q->position += q->border ? o : pq_overlap * mp / m_total;
+
+			double f = vec2d::dot(pq_v, pq);
+
+			if (f < 0)
+			{
+				f /= d2 * (mp + mq);
+				p->velocity += 2 * C_r * mq * f * pq;
+				q->velocity -= q->border ? o : 2 * C_r * mp * f * pq;
+			}
 		}
-	}
 	}
 }
 
@@ -426,12 +439,13 @@ static void balls_init_faces()
 
 void ball::draw(cairo_t *cr) const
 {
-	if (show_fluid) {
-	cairo_save(cr);
-	cairo_translate(cr, position.x - radius, position.y - radius);
-	cairo_set_source_surface(cr, face->get_surface(angle), 0, 0);
-	cairo_paint(cr);
-	cairo_restore(cr);
+	if (show_fluid)
+	{
+		cairo_save(cr);
+		cairo_translate(cr, position.x - radius, position.y - radius);
+		cairo_set_source_surface(cr, face->get_surface(angle), 0, 0);
+		cairo_paint(cr);
+		cairo_restore(cr);
 	}
 }
 

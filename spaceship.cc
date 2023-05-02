@@ -32,7 +32,7 @@ void spaceship_update_state () {
 	else
 	    spaceship_thrust = 0;
     }
-    ball_update_state(&spaceship);
+    if (!fluid) ball_update_state(&spaceship);
 }
 
 void spaceship_draw (cairo_t * cr) {
