@@ -13,7 +13,8 @@ int spaceship_thrust_init = 50;
 void spaceship_init_state () {
     spaceship.position.x = width/2;
     spaceship.position.y = height/2;
-    spaceship.radius = 30;
+    spaceship.radius = 10;
+    spaceship.border = 0;
     spaceship.velocity.x = 0;
     spaceship.velocity.y = 0;
     spaceship.angle = 0;
@@ -33,6 +34,7 @@ void spaceship_update_state () {
 	    spaceship_thrust = 0;
     }
     if (!fluid) ball_update_state(&spaceship);
+    else ball_update_state_fluid(&spaceship);
 }
 
 void spaceship_draw (cairo_t * cr) {

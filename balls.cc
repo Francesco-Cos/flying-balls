@@ -4,15 +4,17 @@
 #include <iostream>
 #include <random>
 
+#include "polygon.h"
 #include "game.h"
 #include "balls.h"
 #include "gravity.h"
 
 unsigned int radius_min = 5;
 unsigned int radius_max = 10;
-unsigned int radius_particle = 10;
+unsigned int radius_particle = 8;
 unsigned int max_rep = 50;
 unsigned int rc = radius_particle * 2;
+unsigned int border_velocity = 100;
 double sigma = 1.0;
 
 unsigned int v_max = 100;
@@ -28,16 +30,11 @@ std::normal_distribution<double> distribution(0, 1.0);
 
 ball *balls = nullptr;
 unsigned int n_balls = 50;
-unsigned int border_particles = 0;
+unsigned int border_particles = 5;
 unsigned int fluid = 0;
 unsigned int show_fluid = 1;
 
-// Coefficient of restitution:
-// C_r == 1.0 ==> perfectly elastic collisions
-// C_r == 0.0 ==> perfectly inelastic collisions
-//
 static double C_r = 1.0;
-// static vec2d shoot_d{.x = 0, .y = 20};
 
 void restitution_coefficient_set(double c)
 {
@@ -104,6 +101,8 @@ void balls_init_state()
 		balls[i].position.y = border + rand() % h;
 		balls[i].velocity = fluid ? o : random_velocity();
 		balls[i].border = 0;
+		balls[i].segment = -1;
+		balls[i].inner = -1;
 		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
 		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
 		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
@@ -118,6 +117,8 @@ void balls_init_state()
 			balls[i].velocity.x = 0;
 			balls[i].velocity.y = i % 2 ? 300 : -300;
 			balls[i].border = 1;
+			balls[i].segment = -1;
+			balls[i].inner = -1;
 			balls[i].radius = radius_particle;
 			balls[i].v_angle = 0;
 			balls[i].angle = 0;
@@ -127,6 +128,58 @@ void balls_init_state()
 		{
 			balls[i].force = ball_calculate_force(&balls[i]);
 		}
+	}
+}
+
+void balls_init_state_track() {
+	for (unsigned int i = 0; i < n_balls - 2*inner.points.size(); ++i)
+	{
+		int random_vec = rand() % inner.points.size();
+		int next_random_vec = random_vec + 1 >= inner.points.size() ? 0 : random_vec + 1;
+		vec2d vec_inner = inner.points[random_vec];
+		vec2d next_vec_inner = inner.points[next_random_vec];
+		vec2d vec_outer = outer.points[random_vec];
+		vec2d seg = next_vec_inner - vec_inner;
+		vec2d t = vec_outer - vec_inner;
+		balls[i].position = vec_inner + (t * (10 + rand() % 70) / 100) + (seg * (rand() % 100) / 100);
+		balls[i].velocity = fluid ? o : random_velocity();
+		balls[i].border = 0;
+		balls[i].segment = -1;
+		balls[i].inner = -1;
+		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
+		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
+		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
+		balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
+	}
+
+	for (unsigned int i = n_balls - 2*inner.points.size(); i < n_balls - inner.points.size(); ++i) {
+		int point = i % (n_balls - 2*inner.points.size());
+		balls[i].position = inner.points[point];
+		int next_point = point + 1 >= inner.points.size() ? 0 : point + 1;
+		vec2d vel_dir = vec2d::norm(inner.points[next_point] - inner.points[point]);
+		balls[i].velocity = vel_dir * border_velocity;
+		balls[i].border = 1;
+		balls[i].segment = point;
+		balls[i].inner = 1;
+		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
+		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
+		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
+		balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
+	}
+
+	for (unsigned int i = n_balls - inner.points.size(); i < n_balls; ++i) {
+		int point = i % (n_balls - inner.points.size());
+		balls[i].position = outer.points[point];
+		int next_point = point + 1 >= inner.points.size() ? 0 : point + 1;
+		vec2d vel_dir = vec2d::norm(outer.points[next_point] - outer.points[point]);
+		balls[i].velocity = vel_dir * border_velocity;
+		balls[i].border = 1;
+		balls[i].segment = point;
+		balls[i].inner = 0;
+		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
+		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
+		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
+		balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
 	}
 }
 
@@ -166,6 +219,25 @@ void ball_top_bottom_collision_fluid(ball *p)
 			p->position.y = height;
 		}
 	}
+}
+
+void ball_polygon_collision(ball *b, polygon *p) {
+	int size = p->points.size();
+	for (int i = 1; i <= size; i++)
+    {
+        vec2d& point = p->points[i%size];
+		vec2d point2 = p->points[(i+1)%size];
+        vec2d vec1 =  point2 - point;
+		vec2d vec2 = b->position - point;
+		vec2d vec3 = b->position - point2;
+		vec2d projection = vec1 * (vec2d::dot(vec1, vec2) / vec2d::dot(vec1, vec1));
+		vec2d normal = vec2d::norm(vec2 - projection);
+		vec2d reflected_velocity = b->velocity - 2 * vec2d::dot(b->velocity, normal) * normal;
+		double dist = vec2d::module(vec2 - projection);
+		if (dist < radius_particle && vec2d::module(vec2) < vec2d::module(vec1) && vec2d::module(vec3) < vec2d::module(vec1)) {
+			b->velocity = reflected_velocity;
+		}
+    }
 }
 
 void ball_walls_collision(ball *p)
@@ -259,8 +331,32 @@ void ball_update_state_fluid(ball *p)
 	else
 	{
 		p->position += delta * p->velocity;
+		int next_segment = p->segment + 1 >= inner.points.size() ? 0 : p->segment + 1;
+		if (track && p->inner &&
+					 p->position.x <= inner.points[next_segment].x + 1 && 
+					 p->position.x >= inner.points[next_segment].x - 1 &&
+					 p->position.y <= inner.points[next_segment].y + 1 && 
+					 p->position.y >= inner.points[next_segment].y - 1) {
+			p->segment = next_segment;
+			p->position = inner.points[next_segment];
+			p->velocity = vec2d::norm(inner.points[(next_segment + 1) % inner.points.size()] - inner.points[next_segment]) * border_velocity;
+		} else if (track && !p->inner &&
+					 p->position.x <= outer.points[next_segment].x + 1 && 
+					 p->position.x >= outer.points[next_segment].x - 1 &&
+					 p->position.y <= outer.points[next_segment].y + 1 && 
+					 p->position.y >= outer.points[next_segment].y - 1) { 
+			p->segment = next_segment;
+			p->position = outer.points[next_segment];
+			p->velocity = vec2d::norm(outer.points[(next_segment + 1) % inner.points.size()] - outer.points[next_segment]) * border_velocity;			
+		}
+		if (track) p->velocity = vec2d::norm(p->velocity) * border_velocity;
 	}
 	ball_walls_collision(p);
+	if (track && !p->border) {
+		ball_polygon_collision(p, &inner);
+		ball_polygon_collision(p, &outer);
+	}
+
 }
 
 void ball_ball_collision(ball *p, ball *q)
@@ -317,7 +413,7 @@ static std::vector<ball_face *> faces;
 class ball_face
 {
 public:
-	ball_face(unsigned int radius, cairo_surface_t *face, int rotation);
+	ball_face(unsigned int radius, cairo_surface_t *face, int rotation, ball *b);
 	~ball_face();
 	cairo_surface_t *get_surface(double angle) const;
 
@@ -331,7 +427,7 @@ static double random_color_component()
 	return 1.0 * (rand() % 200 + 56) / 255;
 };
 
-ball_face::ball_face(unsigned int radius, cairo_surface_t *face, int rotation)
+ball_face::ball_face(unsigned int radius, cairo_surface_t *face, int rotation, ball* b)
 {
 	if (face && rotation)
 	{
@@ -367,9 +463,10 @@ ball_face::ball_face(unsigned int radius, cairo_surface_t *face, int rotation)
 			cairo_pattern_t *pat;
 			pat = cairo_pattern_create_radial(-0.2 * radius, -0.2 * radius, 0.2 * radius,
 											  -0.2 * radius, -0.2 * radius, 1.3 * radius);
-			double col_r = random_color_component();
-			double col_g = random_color_component();
-			double col_b = random_color_component();
+			
+			double col_r = b->border ? 0.9 : 0.1;//random_color_component();
+			double col_g = b->border ? 0.5 : 0.5;//random_color_component();
+			double col_b = b->border ? 0.1 : 0.9;//random_color_component();
 			cairo_pattern_add_color_stop_rgba(pat, 0, col_r, col_g, col_b, 1);
 			cairo_pattern_add_color_stop_rgba(pat, 1, col_r / 3, col_g / 3, col_b / 3, 1);
 			cairo_set_source(ball_cr, pat);
@@ -424,7 +521,7 @@ static void balls_init_faces()
 		{
 			unsigned int r_idx = b->radius - radius_min;
 			if (faces[r_idx] == nullptr)
-				faces[r_idx] = new ball_face(b->radius, face_surface, face_rotation);
+				faces[r_idx] = new ball_face(b->radius, face_surface, face_rotation, b);
 			b->face = faces[r_idx];
 		}
 		cairo_surface_destroy(face_surface);
@@ -433,7 +530,7 @@ static void balls_init_faces()
 	{
 		faces.resize(n_balls);
 		for (unsigned int i = 0; i < n_balls; ++i)
-			balls[i].face = faces[i] = new ball_face(balls[i].radius, 0, face_rotation);
+			balls[i].face = faces[i] = new ball_face(balls[i].radius, 0, face_rotation, &balls[i]);
 	}
 }
 
@@ -455,12 +552,15 @@ void balls_draw(cairo_t *cr)
 		b->draw(cr);
 }
 
-void shoot_draw(cairo_t *cr)
-{
+void border_draw (cairo_t * cr) {
 	cairo_save(cr);
 	cairo_new_path(cr);
+	cairo_move_to(cr, width/2, height/2);
+	cairo_line_to(cr, width/2, height/2 - border_velocity);
 	cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
-	cairo_arc(cr, width / 2, height, 10, 0, 2 * M_PI);
+	cairo_set_line_width(cr, 1.0);
+	cairo_stroke(cr);
+	cairo_arc(cr, width/2, height/2 - border_velocity, 3, 0, 2*M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
 }
@@ -483,6 +583,7 @@ void balls_init()
 {
 	balls = new ball[n_balls];
 	assert(balls);
-	balls_init_state();
+	if (!track) balls_init_state();
+	else balls_init_state_track();
 	balls_init_faces();
 }

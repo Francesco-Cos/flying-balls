@@ -10,6 +10,8 @@ class ball_face;
 class ball {
 public:
     unsigned int border;
+    unsigned int segment;
+    unsigned int inner;
     unsigned int radius;
     vec2d position;
     vec2d velocity;
@@ -30,6 +32,7 @@ extern unsigned int fluid;
 extern unsigned int show_fluid;
 extern unsigned int rc;
 extern unsigned int max_rep;
+extern unsigned int border_velocity;
 extern double sigma;
 
 extern unsigned int radius_min;
@@ -57,7 +60,7 @@ extern vec2d ball_calculate_distance (vec2d d1, vec2d d2);
 extern void ball_ball_collision (ball * p, ball * q);
 extern void ball_reposition (ball * b);
 extern void balls_draw (cairo_t * cr);
-extern void shoot_draw (cairo_t * cr);
+extern void border_draw (cairo_t * cr);
 
 extern void restitution_coefficient_draw (cairo_t * cr);
 extern void restitution_coefficient_set (double c);

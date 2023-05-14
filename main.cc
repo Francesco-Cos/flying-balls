@@ -13,6 +13,7 @@
 
 #include "game.h"
 #include "balls.h"
+#include "polygon.h"
 #include "c_index.h"
 #include "gravity.h"
 #include "spaceship.h"
@@ -56,6 +57,7 @@ void update_state () {
 
 void game_init () {
     srand (time(NULL));
+	polygons_init ();
     balls_init ();
     assert(c_index_init());
     spaceship_init_state ();
@@ -111,27 +113,21 @@ param_controls gravity_control = {
     .keyboard_input = gravity_controls_keyboard_input,
 };
 
-gint shoot_ball_keyboard_input (GdkEventKey *event) {
+gint border_speed_keyboard_input (GdkEventKey *event) {
     switch(event->keyval) {
     case GDK_KEY_Up:
-	gravity_change (0, -10);
+	border_velocity += border_velocity == 220 ? 0 : 10;
 	return TRUE;
     case GDK_KEY_Down:
-	gravity_change (0, 10);
-	return TRUE;
-    case GDK_KEY_Left:
-	gravity_change (-10, 0);
-	return TRUE;
-    case GDK_KEY_Right:
-	gravity_change (10, 0);
+	border_velocity -= border_velocity == 10 ? 0 : 10;
 	return TRUE;
     }
     return FALSE;
 }
 
-param_controls shoot_ball = {
-    .draw = shoot_draw,
-    .keyboard_input = shoot_ball_keyboard_input,
+param_controls border_speed = {
+    .draw = border_draw,
+    .keyboard_input = border_speed_keyboard_input,
 };
 
 gint restitution_coefficient_controls_keyboard_input (GdkEventKey *event) {
@@ -185,7 +181,8 @@ gboolean draw_frame (GtkWidget * widget, cairo_t *cr, gpointer data) {
 	param_control->draw (cr);
     gravity_draw_visible_field (cr);
     balls_draw (cr);
-	if (!fluid) spaceship_draw (cr);
+	polygon_draw(cr);
+	if(spaceship_present) spaceship_draw (cr);
     return FALSE;
 }
 
@@ -220,9 +217,9 @@ gint keyboard_input (GtkWidget *widget, GdkEventKey *event) {
     case GDK_KEY_g:
 	param_control_activate (&gravity_control);
 	return TRUE;
-	case GDK_KEY_B:
-    case GDK_KEY_b:
-	param_control_activate (&shoot_ball);
+	case GDK_KEY_S:
+    case GDK_KEY_s:
+	param_control_activate (&border_speed);
 	return TRUE;
     case GDK_KEY_P:
     case GDK_KEY_p:
@@ -330,6 +327,12 @@ int main (int argc, const char *argv[]) {
 	    continue;
 	if (sscanf(argv[i], "fluid=%u", &fluid) == 1) {
 		border_particles = 10;
+	    continue;
+	}
+	if (sscanf(argv[i], "track=%u", &track) == 1) {
+	    continue;
+	}
+	if (sscanf(argv[i], "polygon=%u", &polygon_size) == 1) {
 	    continue;
 	}
 	if (sscanf(argv[i], "showf=%u", &show_fluid) == 1) {
