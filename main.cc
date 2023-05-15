@@ -116,7 +116,7 @@ param_controls gravity_control = {
 gint border_speed_keyboard_input (GdkEventKey *event) {
     switch(event->keyval) {
     case GDK_KEY_Up:
-	border_velocity += border_velocity == 220 ? 0 : 10;
+	border_velocity += border_velocity == 200 ? 0 : 10;
 	return TRUE;
     case GDK_KEY_Down:
 	border_velocity -= border_velocity == 10 ? 0 : 10;
@@ -333,6 +333,9 @@ int main (int argc, const char *argv[]) {
 	    continue;
 	}
 	if (sscanf(argv[i], "polygon=%u", &polygon_size) == 1) {
+	    continue;
+	}
+	if (sscanf(argv[i], "debugp=%u", &polygon_structure) == 1) {
 	    continue;
 	}
 	if (sscanf(argv[i], "showf=%u", &show_fluid) == 1) {

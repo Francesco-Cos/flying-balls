@@ -141,7 +141,7 @@ void balls_init_state_track() {
 		vec2d vec_outer = outer.points[random_vec];
 		vec2d seg = next_vec_inner - vec_inner;
 		vec2d t = vec_outer - vec_inner;
-		balls[i].position = vec_inner + (t * (10 + rand() % 70) / 100) + (seg * (rand() % 100) / 100);
+		balls[i].position = vec_inner + (t * (30 + rand() % 40) / 100) + (seg * (rand() % 100) / 100);
 		balls[i].velocity = fluid ? o : random_velocity();
 		balls[i].border = 0;
 		balls[i].segment = -1;
@@ -235,6 +235,7 @@ void ball_polygon_collision(ball *b, polygon *p) {
 		vec2d reflected_velocity = b->velocity - 2 * vec2d::dot(b->velocity, normal) * normal;
 		double dist = vec2d::module(vec2 - projection);
 		if (dist < radius_particle && vec2d::module(vec2) < vec2d::module(vec1) && vec2d::module(vec3) < vec2d::module(vec1)) {
+			b->position += normal;
 			b->velocity = reflected_velocity;
 		}
     }
@@ -351,10 +352,11 @@ void ball_update_state_fluid(ball *p)
 		}
 		if (track) p->velocity = vec2d::norm(p->velocity) * border_velocity;
 	}
-	ball_walls_collision(p);
 	if (track && !p->border) {
 		ball_polygon_collision(p, &inner);
 		ball_polygon_collision(p, &outer);
+	} else if (!track) {
+		ball_walls_collision(p);
 	}
 
 }

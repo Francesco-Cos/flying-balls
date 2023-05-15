@@ -1,4 +1,5 @@
 #include <vector>
+#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include <iostream>
@@ -9,6 +10,7 @@
 
 polygon inner;
 polygon outer;
+unsigned int polygon_structure = 0;
 unsigned int polygon_size = 5;
 unsigned int track = 0;
 
@@ -22,6 +24,10 @@ void polygons_init()
             vec2d norm = vec2d::norm(temp);
             temp = norm * 150; 
         }
+        if (vec2d::module(temp) > 300) {
+            vec2d norm = vec2d::norm(temp);
+            temp = norm * 250;
+        }
         vec.push_back(temp);
     }
     
@@ -30,8 +36,6 @@ void polygons_init()
     std::sort(inner.points.begin(), inner.points.end(), vec2d::less);
 
     outer = create_outer(inner);
-    outer.set_center();
-    std::sort(outer.points.begin(), outer.points.end(), vec2d::less);
 
     for (auto& point : inner.points) {
         point.x += width/2;
@@ -43,6 +47,10 @@ void polygons_init()
         point.y += height/2;
     }
     for (auto& point : inner.points) {
+        std::cout << "point: " << point << std::endl; 
+    }
+    std::cout << "-------------" << std::endl;
+    for (auto& point : outer.points) {
         std::cout << "point: " << point << std::endl; 
     }
 }
@@ -62,6 +70,7 @@ polygon create_outer(polygon& p)
 
         points.push_back(point + dir * 80);
     }
+        std::rotate(points.rbegin(), points.rbegin() + 1, points.rend());
         polygon ret{points};
 
     return ret;
@@ -84,4 +93,19 @@ void polygon_draw(cairo_t *cr)
 {
     inner.draw(cr);
     outer.draw(cr);
+    // ------ Draw lines from inner to outer polygon to check vertices ------
+    if (polygon_structure) {
+        cairo_save(cr);
+        cairo_new_path(cr);
+        for (int i = 0; i < polygon_size; ++i) {
+            cairo_move_to(cr, inner.points[i].x, inner.points[i].y);
+            cairo_line_to(cr, outer.points[i].x, outer.points[i].y);
+        }
+        cairo_move_to(cr, inner.points[0].x, inner.points[0].y);
+        cairo_line_to(cr, outer.points[0].x, outer.points[0].y);
+        cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+        cairo_set_line_width(cr, 1.0);
+        cairo_stroke(cr);
+        cairo_restore(cr);
+    }
 }

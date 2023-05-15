@@ -31,6 +31,7 @@ extern unsigned int track;
 extern polygon inner;
 extern polygon outer;
 extern unsigned int polygon_size;
+extern unsigned int polygon_structure;
 extern void polygons_init();
 extern polygon create_outer(polygon& p);
 extern void polygon_draw (cairo_t * cr);
