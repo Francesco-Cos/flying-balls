@@ -181,7 +181,7 @@ gboolean draw_frame (GtkWidget * widget, cairo_t *cr, gpointer data) {
 	param_control->draw (cr);
     gravity_draw_visible_field (cr);
     balls_draw (cr);
-	polygon_draw(cr);
+	if (track) polygon_draw(cr);
 	if(spaceship_present) spaceship_draw (cr);
     return FALSE;
 }
