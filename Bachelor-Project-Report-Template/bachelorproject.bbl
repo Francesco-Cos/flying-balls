@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{Hoogerbrugge}
+P.~J. Hoogerbrugge and J.~M. V.~A. Koelman.
+\newblock Simulating microscopic hydrodynamic phenomena with dissipative
+  particle dynamics.
+\newblock {\em Europhysics Letters}, 19(3):155, jun 1992.
+
+\bibitem{Groot}
+Rob Groot and Patrick Warren.
+\newblock Dissipative particle dynamics: Bridging the gap between atomistic and
+  mesoscopic simulation.
+\newblock {\em The Journal of Chemical Physics}, 107, 09 1997.
+
+\bibitem{Warren}
+Pep Español and P.B. Warren.
+\newblock Statistical mechanics of dissipative particle dynamics.
+\newblock {\em EPL (Europhysics Letters)}, 30:191, 05 1995.
+
+\end{thebibliography}
