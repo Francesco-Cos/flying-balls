@@ -181,8 +181,73 @@ than the atomistic scale, but smaller than the macroscopic scale. This intermedi
 model the properties of the fluid with sufficient detail while avoiding the cost of simulating each atom individually.
 
 The usual set of equations (Navier-Stokes) used to model the behaviour of the fluid is hence replaced by a new 
-formulation of the forces between particles. 
+formulation of the forces between particles. These forces must have specific definitions in order to satisfy the conservation of 
+energy and momentum, and they consist of 
 
+\begin{description}
+    \item[Conservative Force] This is a simple repulsion force that acts on the line between centres of the particles. It is to be calculated 
+    for each pair of particles in the system.
+    \begin{equation}
+        \textbf{F}^C_{ij} = \left\{
+            \begin{aligned}
+              & a_{ij}(1 - r_{ij})\hat{\textbf{r}}_{ij} \quad (r_{ij} < r_c)\\
+              & 0 \quad (r_{ij} \geq 1)
+            \end{aligned}
+          \right.
+    \end{equation}
+    where $a_{ij}$ is the maximum repulsion between particles $i$ and $j$, and $r_c$ is the unit of 
+    lenght for our system. Since we represent the particles as circles of a certain radius, the unit 
+    length will be set to the diameter of the particles. Finally we define distances between particles as 
+    $$\textbf{r}_{ij} = \textbf{r}_i - \textbf{r}_j, \quad r_{ij} = \vert \textbf{r}_{ij} \vert, \quad \hat{\textbf{r}}_{ij} = \frac{\textbf{r}_{ij}}{r_{ij}}$$
+    \item[Dissipative Force] This force simulates the friction between particles and removes energy from the system.
+    \item[] 
+    $$\textbf{F}^D_{ij} = - \gamma \omega^D(r_{ij})(\hat{\textbf{r}}_{ij} \cdot \textbf{v}_{ij})\hat{\textbf{r}}_{ij}$$
+
+    where $\textbf{v}_{ij} = \textbf{v}_i - \textbf{v}_j$ is the difference in velocity between particles; $\gamma$ is in relation with the amplitude 
+    $\sigma$ of the random force and defined as $\sigma^2 = 2 \gamma k_b T$(which will be discussed in later sections); $\omega^D$ is a weight function 
+    dependent on the position of the particles and defined as 
+    \begin{equation}
+        \omega^D (r) = \left\{
+            \begin{aligned}
+              & (1 - r)^2 \quad (r < 1)\\
+              & 0 \quad (r \geq 1)
+            \end{aligned}
+          \right.
+    \end{equation}
+    \item[Random Force] This force is used to balance the system and avoid a situation of stall that would occur if only the 
+    first two forces were present.
+
+    $$\textbf{F}^R_{ij} = \sigma \omega^R(r_{ij})\theta_{ij}\hat{\textbf{r}}_{ij}$$
+
+    where $\sigma$ is the noise level which has been set to $1$ for our purposes; $\theta_{ij}$ is a random variable unique for each pair of particles; 
+    $\omega^R$ is a weight function related to $\omega^D$ with the form 
+    $$\omega^R (r) = \sqrt {\omega^D (r)}$$
+
+\end{description}
+
+\subsubsection{Equtions of motion and parameters}
+In order to update position, velocity and forces acting on the particles a system of equations of motion is 
+necessary. Since we are dealing with particles in the case of molecular dynamics, a modified version of the 
+velocity-Verlet algorithm (an integration method for equations of motion in cases such as ours) is used in this case, 
+resulting in the set of equations 
+
+\begin{equation}
+    \left\{
+        \begin{aligned}
+          & \textbf{r}_i (t + \Delta t) = \textbf{r}_i (t) + \Delta t \textbf{v}_i (t) + 1/2(\Delta t)^2 \textbf{f}_i(t)\\
+          & \tilde{\textbf{v}}_i (t + \Delta t) = \textbf{v}_i (t) + \lambda  \Delta t \textbf{f}_i(t)\\
+          & \textbf{f}_i(t + \Delta t) = \textbf{f}_i(\textbf{r} (t + \Delta t), \tilde{\textbf{v}} (t + \Delta t))\\
+          & \textbf{v}_i (t + \Delta t) = \textbf{v}_i (t) + 1/2 \Delta t (\textbf{f}_i(t) + \textbf{f}_i(t + \Delta t))
+        \end{aligned}
+      \right.
+\end{equation}
+
+Since the force depends on the velocity of the particles the idea is to make a prediction for the velocity, namely 
+$\tilde{\textbf{v}}$ which is then used to calculate the force and finally the new velocity. The variable factor 
+$\lambda$ accounts for some interactions in the system but for our purposes we will fix it to $\frac{1}{2}$ as 
+done in the experiment we take inspiration from. Since we are not trying to study the 
+effect of the different parameters and the stability of the model we will in general fix most 
+variable to values known to produce stable simulations.
 \newpage
 \section{Implementation}
 \subsection{Extending the existing tool}
