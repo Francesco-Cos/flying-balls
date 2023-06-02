@@ -12,7 +12,7 @@
 unsigned int radius_min = 5;
 unsigned int radius_max = 10;
 unsigned int radius_particle = 8;
-unsigned int max_rep = 50;
+unsigned int max_rep = 35;
 unsigned int rc = radius_particle * 2;
 unsigned int border_velocity = 100;
 double sigma = 1.0;

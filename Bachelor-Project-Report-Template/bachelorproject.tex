@@ -252,13 +252,22 @@ will generally fix most variables to values known to produce stable simulations.
 instead focused on studying how the simulation is affected by the choice of parameters we will generally take inspiration 
 from their results to implement our model.
 
+The remaining variables that need to be defined are 
+
+\begin{description}
+  \item[Repulsion parameter $a$] The variable is used to describe the maximum possible repulsion between particles. 
+  The higher this parameter the more entropy can be observed in the system. For this project the value was set to 
+  $a = 35$, which resulted in a satisfying simulation.
+  \item[Temperature of the system $T$] The temperature of the fluid is one of the main properties that can be studied, 
+  since it has strong consequences on the stability of the simulation. For our purposes we will work on the assumption that 
+  $k_b T = 1$, which simplifies the problem and allows for the direct comparison of noise parameters $\frac{\sigma^2}{2} = \gamma$.
+\end{description}
 
 
 \newpage
 \section{Implementation}
-\subsection{Extending the existing tool}
+\subsection{Existing tool and technical background}
 \subsection{Implementing the DPD method}
-\subsection{Choice of parameters}
 
 \newpage
 \section{Optimizing the Simulation}
