@@ -187,14 +187,14 @@ energy and momentum, and they consist of
 \begin{description}
     \item[Conservative Force] This is a simple repulsion force that acts on the line between centres of the particles. It is to be calculated 
     for each pair of particles in the system.
-    \begin{equation}
+    \begin{equation*}
         \textbf{F}^C_{ij} = \left\{
             \begin{aligned}
               & a_{ij}(1 - r_{ij})\hat{\textbf{r}}_{ij} \quad (r_{ij} < r_c)\\
               & 0 \quad (r_{ij} \geq 1)
             \end{aligned}
           \right.
-    \end{equation}
+    \end{equation*}
     where $a_{ij}$ is the maximum repulsion between particles $i$ and $j$, and $r_c$ is the unit of 
     lenght for our system. Since we represent the particles as circles of a certain radius, the unit 
     length will be set to the diameter of the particles. Finally we define distances between particles as 
@@ -206,14 +206,14 @@ energy and momentum, and they consist of
     where $\textbf{v}_{ij} = \textbf{v}_i - \textbf{v}_j$ is the difference in velocity between particles; $\gamma$ is in relation with the amplitude 
     $\sigma$ of the random force and defined as $\sigma^2 = 2 \gamma k_b T$(which will be discussed in later sections); $\omega^D$ is a weight function 
     dependent on the position of the particles and defined as 
-    \begin{equation}
+    \begin{equation*}
         \omega^D (r) = \left\{
             \begin{aligned}
               & (1 - r)^2 \quad (r < 1)\\
               & 0 \quad (r \geq 1)
             \end{aligned}
           \right.
-    \end{equation}
+    \end{equation*}
     \item[Random Force] This force is used to balance the system and avoid a situation of stall that would occur if only the 
     first two forces were present.
 
@@ -231,7 +231,7 @@ necessary. Since we are dealing with particles in the case of molecular dynamics
 velocity-Verlet algorithm (an integration method for equations of motion in cases such as ours) is used in this case, 
 resulting in the set of equations 
 
-\begin{equation}
+\begin{equation*}
     \left\{
         \begin{aligned}
           & \textbf{r}_i (t + \Delta t) = \textbf{r}_i (t) + \Delta t \textbf{v}_i (t) + 1/2(\Delta t)^2 \textbf{f}_i(t)\\
@@ -240,14 +240,20 @@ resulting in the set of equations
           & \textbf{v}_i (t + \Delta t) = \textbf{v}_i (t) + 1/2 \Delta t (\textbf{f}_i(t) + \textbf{f}_i(t + \Delta t))
         \end{aligned}
       \right.
-\end{equation}
+\end{equation*}
 
 Since the force depends on the velocity of the particles the idea is to make a prediction for the velocity, namely 
 $\tilde{\textbf{v}}$ which is then used to calculate the force and finally the new velocity. The variable factor 
 $\lambda$ accounts for some interactions in the system but for our purposes we will fix it to $\frac{1}{2}$ as 
-done in the experiment we take inspiration from. Since we are not trying to study the 
-effect of the different parameters and the stability of the model we will in general fix most 
-variable to values known to produce stable simulations.
+done in the experiment we take inspiration from. 
+
+Given that we are not trying to study the effects of the different parameters and the stability of the model, we 
+will generally fix most variables to values known to produce stable simulations. Since the research by Groot and Warren is 
+instead focused on studying how the simulation is affected by the choice of parameters we will generally take inspiration 
+from their results to implement our model.
+
+
+
 \newpage
 \section{Implementation}
 \subsection{Extending the existing tool}

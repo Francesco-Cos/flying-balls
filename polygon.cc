@@ -20,17 +20,17 @@ void polygons_init()
     for (int i = 0; i < polygon_size ; i++) 
     {
         vec2d temp{double(rand() % (width/2) + (-width/4)), double(rand() % (height/2) + (-height/4))};
-        if (vec2d::module(temp) < 100) {
+        if (vec2d::module(temp) < 220) {
             vec2d norm = vec2d::norm(temp);
-            temp = norm * 150; 
+            temp = norm * 220; 
         }
-        if (vec2d::module(temp) > 300) {
+        if (vec2d::module(temp) > 220) {
             vec2d norm = vec2d::norm(temp);
-            temp = norm * 250;
+            temp = norm * 220;
         }
         vec.push_back(temp);
     }
-    
+
     inner = polygon{vec};
     inner.set_center();
     std::sort(inner.points.begin(), inner.points.end(), vec2d::less);
