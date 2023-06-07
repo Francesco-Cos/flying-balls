@@ -17,6 +17,7 @@
 #include "c_index.h"
 #include "gravity.h"
 #include "spaceship.h"
+#include "cell_list.h"
 
 /* Trivial collision check
  */
@@ -50,6 +51,7 @@ void update_state () {
 	if(fluid) ball_update_state_fluid(balls + i);
 	else ball_update_state(balls + i);
     if (spaceship_present) spaceship_update_state();
+	if (clist) cell_list_regenerate();
 }
 
 /* Graphics System
@@ -59,11 +61,13 @@ void game_init () {
     srand (time(NULL));
 	polygons_init ();
     balls_init ();
+	if (clist) cell_list_create();
     assert(c_index_init());
     spaceship_init_state ();
 }
 
 void game_destroy () {
+	if (clist) cell_list_destroy();
     c_index_destroy ();
     balls_destroy ();
 }
@@ -119,7 +123,7 @@ gint border_speed_keyboard_input (GdkEventKey *event) {
 	border_velocity += border_velocity == 200 ? 0 : 10;
 	return TRUE;
     case GDK_KEY_Down:
-	border_velocity -= border_velocity == 10 ? 0 : 10;
+	border_velocity -= border_velocity == 10 ? 0 :10;
 	return TRUE;
     }
     return FALSE;
@@ -330,6 +334,9 @@ int main (int argc, const char *argv[]) {
 	    continue;
 	}
 	if (sscanf(argv[i], "track=%u", &track) == 1) {
+	    continue;
+	}
+	if (sscanf(argv[i], "clist=%u", &clist) == 1) {
 	    continue;
 	}
 	if (sscanf(argv[i], "polygon=%u", &polygon_size) == 1) {
