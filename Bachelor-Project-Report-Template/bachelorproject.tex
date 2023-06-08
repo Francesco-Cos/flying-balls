@@ -266,7 +266,43 @@ The remaining variables that need to be defined are
 
 \newpage
 \section{Implementation}
+As previously mentioned this project is based on an existing simple physics engine
+ developed by Professor Carzaniga. The simulation program was originally written in 
+\texttt{C} language and later translated in \texttt{C++} in order to access powerful methods and 
+data structures. The objective was to build on the provided tool by adding new interesting 
+features while keeping the essence of the simulation. This specific extension required a number 
+of additional concepts and ideas but uses the base basic objects and processes as the original.
 \subsection{Existing tool and technical background}
+\subsubsection{Life cycle of the program}
+The original program implements a state based simulation where, after initializing the starting state, the system is 
+updated at each frame (defined by the decided time step). The operations executed at each time step define the 
+behaviour of the simulation and are the core of the implementation. Outside of updating the state of the system, the 
+program also manages the termination of the process. 
+
+\subsubsection{Cairo graphics library}
+The only external library used for this project is \textit{Cairo}\footnote{https://www.cairographics.org/documentation/}, which allows us to visually represent the 
+objects of the system and the simulation. It is a 2D graphics library supporting multiple output devices. The cairo API implements operations 
+similar to those of PDF and PostScript, such as stroking. All drawing operations can also be 
+transformed through affine transformations (such as rotation and scale). The library is originally written in \texttt{C} language but provides bindings for several programming languages.
+
+Cairo relies on a three-layer for the drawing process\footnote{https://en.wikipedia.org/wiki/Cairo\_(graphics)}. The steps can be divided in
+\begin{itemize}
+  \item creating a mask which consists of basic vector primitives or forms such as circles, squares or even 
+  Bézier curves;
+  \item defining a source which may be a color, a gradient or vector graphics, and with the help of the 
+  previously defined mask a die cut of the source is made;
+  \item finally the result is transferred to a destination surface which will be provided by the back-end to the output.
+\end{itemize}
+
+\begin{figure} [h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{cairo_model.png}
+    \caption{Cairo drawing model (taken from Wikipedia)}
+    \label{fig:CairoModel}
+\end{figure}
+
+\newpage
+
 \subsection{Implementing the DPD method}
 
 \newpage
