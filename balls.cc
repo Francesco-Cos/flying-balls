@@ -132,10 +132,12 @@ void balls_init_state()
 	}
 }
 
-std::vector<int> weights() {
+std::vector<int> weights()
+{
 	int particles = n_balls - 2 * inner.points.size();
 	std::vector<double> segments = {};
-	for (int i = 0; i < inner.points.size(); i++) {
+	for (int i = 0; i < inner.points.size(); i++)
+	{
 		vec2d vec_inner = inner.points[i];
 		int next_vec = i + 1 >= inner.points.size() ? 0 : i + 1;
 		vec2d next_vec_inner = inner.points[next_vec];
@@ -144,10 +146,12 @@ std::vector<int> weights() {
 		segments.push_back(seg_len);
 	}
 	double perimeter = 0;
-	for (auto seg : segments) perimeter += seg;
+	for (auto seg : segments)
+		perimeter += seg;
 	std::vector<int> weights = {};
-	for (int i = 0; i < inner.points.size(); i++) {
-		weights.push_back(floor((segments[i]/perimeter)*particles));
+	for (int i = 0; i < inner.points.size(); i++)
+	{
+		weights.push_back(floor((segments[i] / perimeter) * particles));
 		std::cout << weights[i] << std::endl;
 	}
 	return weights;
@@ -156,29 +160,28 @@ std::vector<int> weights() {
 void balls_init_state_track()
 {
 	std::vector<int> w = weights();
-	std::cout << w.size() << std::endl;
 	int start = 0;
-	for (int j = 0; j < inner.points.size(); j++) {
-		std::cout << inner.points[j] << std::endl;
-	for (unsigned int i = start; i < start + w[j]; ++i)
+	for (int j = 0; j < inner.points.size(); j++)
 	{
-		vec2d vec_inner = inner.points[j];
-		int next_vec = j + 1 >= inner.points.size() ? 0 : j + 1;
-		vec2d next_vec_inner = inner.points[next_vec];
-		vec2d seg = next_vec_inner - vec_inner;
-		vec2d vec_outer = outer.points[j];
-		vec2d t = vec_outer - vec_inner;
-		balls[i].position = vec_inner + (t * (30 + rand() % 40) / 100) + (seg * (rand() % 100) / 100);
-		balls[i].velocity = fluid ? o : random_velocity();
-		balls[i].border = 0;
-		balls[i].segment = -1;
-		balls[i].inner = -1;
-		balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
-		unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
-		balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
-		balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
-	}
-	start += w[j];
+		for (unsigned int i = start; i < start + w[j]; ++i)
+		{
+			vec2d vec_inner = inner.points[j];
+			int next_vec = j + 1 >= inner.points.size() ? 0 : j + 1;
+			vec2d next_vec_inner = inner.points[next_vec];
+			vec2d seg = next_vec_inner - vec_inner;
+			vec2d vec_outer = outer.points[j];
+			vec2d t = vec_outer - vec_inner;
+			balls[i].position = vec_inner + (t * (30 + rand() % 40) / 100) + (seg * (rand() % 100) / 100);
+			balls[i].velocity = fluid ? o : random_velocity();
+			balls[i].border = 0;
+			balls[i].segment = -1;
+			balls[i].inner = -1;
+			balls[i].radius = fluid ? radius_particle : radius_min + rand() % (radius_max + 1 - radius_min);
+			unsigned int v_angle_360 = (v_angle_min + rand() % (v_angle_max + 1 - v_angle_min)) % 360;
+			balls[i].v_angle = 2 * M_PI * v_angle_360 / 360;
+			balls[i].angle = (rand() % 360) * 2 * M_PI / 360;
+		}
+		start += w[j];
 	}
 
 	for (unsigned int i = n_balls - 2 * inner.points.size(); i < n_balls - inner.points.size(); ++i)
@@ -201,6 +204,7 @@ void balls_init_state_track()
 	{
 		int point = i % (n_balls - inner.points.size());
 		balls[i].position = outer.points[point];
+		std::cout << "outer " << balls[i].position << std::endl;
 		int next_point = point + 1 >= inner.points.size() ? 0 : point + 1;
 		vec2d vel_dir = vec2d::norm(outer.points[next_point] - outer.points[point]);
 		balls[i].velocity = vel_dir * border_velocity;
@@ -236,6 +240,7 @@ void ball_top_bottom_collision(ball *p)
 
 void ball_top_bottom_collision_fluid(ball *p)
 {
+	if (!p->border) {
 	if (p->position.y > height)
 	{ /* bottom wall */
 		if (p->velocity.y > 0)
@@ -249,6 +254,7 @@ void ball_top_bottom_collision_fluid(ball *p)
 		{
 			p->position.y = height;
 		}
+	}
 	}
 }
 
@@ -309,8 +315,8 @@ vec2d ball_calculate_force(ball *p)
 	vec2d Fr{.x = 0, .y = 0};
 	if (!clist)
 	{
-		// std::cout << "wrong" << std::endl;
-		for (unsigned int i = 0; i < n_balls; ++i) {
+		for (unsigned int i = 0; i < n_balls; ++i)
+		{
 			double n = distribution(generator);
 			vec2d sub_p = p->position - balls[i].position;
 			vec2d sub_v = p->velocity - balls[i].velocity;
@@ -325,8 +331,8 @@ vec2d ball_calculate_force(ball *p)
 	}
 	else
 	{
-		std::vector<ball*> nh = neighbourhood(p);
-		for (ball * ball : nh)
+		std::vector<ball *> nh = neighbourhood(p);
+		for (ball *ball : nh)
 		{
 			double n = distribution(generator);
 			vec2d sub_p = p->position - ball->position;
@@ -376,7 +382,8 @@ void ball_update_state_fluid(ball *p)
 		vec2d old_f = p->force;
 		p->force = ball_calculate_force(p);
 		p->velocity = old_v + delta * (p->force + old_f) / 2;
-		if (vec2d::module(p->velocity) > 100) p->velocity = vec2d::norm(p->velocity) * 100;
+		if (vec2d::module(p->velocity) > 100)
+			p->velocity = vec2d::norm(p->velocity) * 100;
 		p->angle += delta * p->v_angle;
 		while (p->angle >= 2 * M_PI)
 			p->angle -= 2 * M_PI;
