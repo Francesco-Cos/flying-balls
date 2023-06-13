@@ -16,7 +16,6 @@ public:
         for(auto& point : points) 
             centroid += point;
         centroid = centroid / points.size();
-        std::cout << "centroid: " << centroid << std::endl;
         for(auto& point : points) {
             point.x += (- centroid.x);
             point.y += (- centroid.y);

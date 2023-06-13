@@ -7,6 +7,7 @@ T:=0
 P:=5
 D:=0
 C:=0
+V:=1
 
 GTK_PACKAGES=gdk-pixbuf-2.0 gtk+-3.0
 GTK_CFLAGS=$(shell pkg-config --cflags $(GTK_PACKAGES))
@@ -33,7 +34,7 @@ stats.o: stats.cc
 
 .PHONY: run
 run: balls
-	./balls fluid=1 spaceship=$S n=$N track=$T polygon=$P debugp=$D clist=$C
+	./balls fluid=1 spaceship=$S n=$N track=$T polygon=$P debugp=$D clist=$C showf=$V
 
 .PHONY: all
 all: $(PROGS)

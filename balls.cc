@@ -152,7 +152,6 @@ std::vector<int> weights()
 	for (int i = 0; i < inner.points.size(); i++)
 	{
 		weights.push_back(floor((segments[i] / perimeter) * particles));
-		std::cout << weights[i] << std::endl;
 	}
 	return weights;
 }
@@ -204,7 +203,6 @@ void balls_init_state_track()
 	{
 		int point = i % (n_balls - inner.points.size());
 		balls[i].position = outer.points[point];
-		std::cout << "outer " << balls[i].position << std::endl;
 		int next_point = point + 1 >= inner.points.size() ? 0 : point + 1;
 		vec2d vel_dir = vec2d::norm(outer.points[next_point] - outer.points[point]);
 		balls[i].velocity = vel_dir * border_velocity;

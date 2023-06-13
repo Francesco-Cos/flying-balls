@@ -225,7 +225,13 @@ energy and momentum, and they consist of
 
 \end{description}
 
-\subsubsection{Equtions of motion and parameters}
+Now that we have defined each force individually, we can update the resulting force on each particles by summing them together 
+\begin{equation}
+  \label{eq:forces}
+  \textbf{f}_i = \sum_{j \neq i} (\textbf{F}^C_{ij} + \textbf{F}^D_{ij} + \textbf{F}^R_{ij})
+\end{equation}
+
+\subsubsection{Equtions of motion and parameters}\label{sub:EqMotion}
 In order to update position, velocity and forces acting on the particles a system of equations of motion is 
 necessary. Since we are dealing with particles in the case of molecular dynamics, a modified version of the 
 velocity-Verlet algorithm (an integration method for equations of motion in cases such as ours) is used in this case, 
@@ -241,6 +247,7 @@ resulting in the set of equations
         \end{aligned}
       \right.
 \end{equation*}
+\vspace{2em}
 
 Since the force depends on the velocity of the particles the idea is to make a prediction for the velocity, namely 
 $\tilde{\textbf{v}}$ which is then used to calculate the force and finally the new velocity. The variable factor 
@@ -304,6 +311,63 @@ Cairo relies on a three-layer for the drawing process\footnote{https://en.wikipe
 \newpage
 
 \subsection{Implementing the DPD method}
+The actual implementation of our method required a number of different steps 
+that range from definition of the behaviour of the particles to the reimagination 
+of the space in which the balls move. The latter improvement was introduced with the objective 
+of making the simulation more interesting and appealing visually, while also testing the 
+model under different constraints.
+
+\subsubsection{Defining motion of particles}
+The first part of the implementation process revolved around taking the theoretical 
+results shown in the pepers studied and put them into pratice in the code. The existing structure 
+was a good starting point since it already updates the state of the objects through equations 
+of motion at each time step. In order to introduce the DPD method, the starting point was to 
+redefine such equations (using the velocity-Verlet algorithm \ref{sub:EqMotion}) and to 
+implement the function used to update the forces on the particles (as per equation \ref{eq:forces}). 
+One of the few architecture details that needed to be changed was the possibility of calculating the position 
+of the particles separately from the other updated properties. This has to be implemented to 
+satisfy the new equations of motion introduced.
+
+Another extension was the introduction of various extra fields for the ball class, which spares us the need 
+of creating a new construct for the particle objects. This new information allows us to discern various 
+differences between fuild particles and those defining the boundaries. On the same vein a number of control variables 
+were defined to ease the ability of controlling the simulation when testing. Finally a new control parameter was added 
+to modify the velocity of the flow dynamically during the simulation.
+
+\subsubsection{Defining new objects}
+The main addition that allows to define flows of motion for our simulated fluids are the border particles.
+This is one of the proposed methods of containing the particles of the system, and consists in assigning a number of 
+objects to move around the edge of the area of interest with the objective of inducing movement in the system and 
+constraining the particles inside. For the purpose of the project, simple elastic collision were also used to keep 
+the particles in check, reducing the importancy of the border elements to simple flow controllers.
+
+With the main interactions defined, the focus went back to one of the most important requirements of the 
+simulation: to be interesting and visually appealing. The simple vertical flow was enough to test the behaviour 
+of the system, but not particularly effective in showcasing the power the model provides. The next improvement was 
+to implement a track the fluid could follow, introducing more complex movement and possibilites for the particles to 
+interact in different scenarios. The construction of such a path required the definition of a new structure. The final choice 
+for the shape of the track came down to a general polygon, since they allow high flexibility and don't introduce 
+excessive complexity in the system. A polygon is simply defined by its vertices and a path can be defined by creating 
+two similar polygons with different sizes, defining inside and outside borders. After creating the inside polygon we can 
+generate the corresponding outside polygon in many different ways. In our case this was done by simply extending the vertices following 
+the direction of the line splitting the corners of the polygon in half. 
+
+\begin{figure} [ht]
+  \centering
+  \includegraphics[width=0.4\textwidth]{polygon.png}
+  \caption{Example of a track generated randomly}
+  \label{fig:Polygon}
+\end{figure}
+
+This simple procedure allows us to generate the track randomly and, with sufficient constraints, we could minimize the possible 
+problems arising from such a direct method. Having both polygon well defined by their vertices it was 
+then possible to easily check for collisions of particles on the boundaries using simple algebra.
+
+One recurring problem was the choice of spawn for each particle at the start of the simulation. The will to randomize the 
+generation of the polygon in order to get different and interesting simulations, forced the starting state of the particles 
+to also be generalized for each possible situation.
+
+\subsubsection{Auxiliary functions}
 
 \newpage
 \section{Optimizing the Simulation}

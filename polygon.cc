@@ -46,13 +46,6 @@ void polygons_init()
         point.x += width/2;
         point.y += height/2;
     }
-    for (auto& point : inner.points) {
-        std::cout << "point: " << point << std::endl; 
-    }
-    std::cout << "-------------" << std::endl;
-    for (auto& point : outer.points) {
-        std::cout << "point: " << point << std::endl; 
-    }
 }
 
 polygon create_outer(polygon& p)
