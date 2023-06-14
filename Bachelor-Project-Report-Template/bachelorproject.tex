@@ -250,7 +250,7 @@ resulting in the set of equations
 \vspace{2em}
 
 Since the force depends on the velocity of the particles the idea is to make a prediction for the velocity, namely 
-$\tilde{\textbf{v}}$ which is then used to calculate the force and finally the new velocity. The variable factor 
+$\tilde{\textbf{v}}$y which is then used to calculate the force and finally the new velocity. The variable factor 
 $\lambda$ accounts for some interactions in the system but for our purposes we will fix it to $\frac{1}{2}$ as 
 done in the experiment we take inspiration from. 
 
@@ -348,7 +348,7 @@ to implement a track the fluid could follow, introducing more complex movement a
 interact in different scenarios. The construction of such a path required the definition of a new structure. The final choice 
 for the shape of the track came down to a general polygon, since they allow high flexibility and don't introduce 
 excessive complexity in the system. A polygon is simply defined by its vertices and a path can be defined by creating 
-two similar polygons with different sizes, defining inside and outside borders. After creating the inside polygon we can 
+two similar polygons with different sizes, representing inside and outside borders. After creating the inside polygon we can 
 generate the corresponding outside polygon in many different ways. In our case this was done by simply extending the vertices following 
 the direction of the line splitting the corners of the polygon in half. 
 
@@ -363,16 +363,93 @@ This simple procedure allows us to generate the track randomly and, with suffici
 problems arising from such a direct method. Having both polygon well defined by their vertices it was 
 then possible to easily check for collisions of particles on the boundaries using simple algebra.
 
-One recurring problem was the choice of spawn for each particle at the start of the simulation. The will to randomize the 
+One recurring problem was the choice of spawn for each particle at the start of the simulation. The wish to randomize the 
 generation of the polygon in order to get different and interesting simulations, forced the starting state of the particles 
-to also be generalized for each possible situation.
+to also be generalized for each possible situation. The main issue is that the length of each segment 
+composing the polygon is highly variables depending on the position of the vertices. The solution to the problem 
+of generating the particles was to give a different weight to each segment, depending on their length, and create an 
+according number of balls along each of them. This method reduces drastically the initial clustering of particles, minimizing 
+possible problematic starting states.
 
 \subsubsection{Auxiliary functions}
+Given the nature of the simulation, 2D vectors were used for most of the implementation, 
+leading to the need of the \texttt{vec2d.h} file which compiles, in addition to the data structure itself, 
+a number of methods useful for our purposes. The header file was already present, but it was extended to include operations 
+such as the cross product and the module of 2 dimensional vectors.
+
+In order to define an order for the vectors of the polygons, a comparator function was also defined, with the objective 
+of sorting points in the space in clock-wise order. This is needed for cairo to correctly 
+draw the polygon and to define the segments.
 
 \newpage
 \section{Optimizing the Simulation}
+As previously mentioned the topic of computational cost is important in the context of this project 
+because fluid-dynamics simulations are usually extremely expensive to run. In order to preserve the nature 
+of the original tool, the DPD method was chosen to emulate the behaviour of fluids.
+
 \subsection{Computational cost}
+Usual CFD simulations on an atomistic scale involve high computational cost given by the sheer 
+number of elements that need to be simulated. Using the proposed method allows to cut significantly this 
+cost and introduces the possibility of getting meaningful results by optimizing the 
+calculations. 
+
+The method simulates the interactions between particles by calculating resulting forces for each individual object. 
+Since each particle can in theory affect all the others in the system, the complexity of our method results in 
+$O(N^2)$, for $N$ total particles. The exponential nature of the complexity means that the process quickly becomes 
+very expensive for an increasing number of elements added to the simulation. One of the main issues with the formulation of 
+our program is that particles affect each other only if they are within a certain cut-off distance, but with no prior information 
+we still have to check all possible interactions. The solution to the problem is to keep track of 
+the position of each element in order to gain fast acces to the neighbourhood of the particle considered during the 
+calculations. One such simple but effective structure is the cell list.
+
 \subsection{Cell list}
+A cell list is a data structure commonly used in molecular dynamics and consists of a simple grid. By dividing the 
+simulation domain in cells of length greater than or equal to the cut-off distance of interaction between atoms (or particles in 
+our case), we can easily extract how big a neighbourhood we have to consider in order to include all relevant elements in the 
+calculations. The total cost of finding all pairwise distances between particles becomes thus effectively linear, with complexity 
+$O(N)$ on the number of elements. 
+
+\begin{figure} [ht]
+  \centering
+  \includegraphics[width=0.4\textwidth]{CellList.png}
+  \caption[Cell List]{Cell list with ghost cells boundary condition \footnotemark}
+  \label{fig:CellList}
+\end{figure}
+\footnotetext{By Pedro Gonnet - Own work, CC BY 3.0, https://commons.wikimedia.org/w/index.php?curid=117923800}
+
+One implementation detail that requires particular attention are boundary conditions. The most common approach is to use 
+periodic boundary conditions, which are preferred to artificially imposed constraints. One such method is the ghost cells approach shown 
+in figure \ref{fig:CellList}. By adding an external layer of cells we can represent the periodic nature of the system, saving us the need of 
+specifying a particular behaviour for the cells lying at the edges of the simulation domain.
+
+\subsubsection{Observed improvement}
+A simple expertimental test was run to asses the effectiveness of cell list in reducing computational cost of the simulation. 
+The test was run with a varying number of particles while trying to keep all possible confounding factors and variables constant. 
+
+\begin{table}[h]
+\centering
+\scalebox {0.8} {
+\begin{normalsize}\begin{tabular}{l|ll}
+\textbf{N Particles} & \textbf{No optimization} & \textbf{Cell list optimization}\\
+\hline
+140 & 48.2 & 45.0 \\
+200 & 54.5 & 48.0 \\
+400 & 76.4 & 54.0 \\ 
+600 & 98.5 & 61.4 \\
+1000 & 100 (frozen) & 73.4\\
+2000 & 100 (frozen) & 91.6 \\
+\end{tabular}
+\end{normalsize}
+}
+\caption{Average CPU Load (\%) comparison depending on number of particles}
+\label{tab:CPULoad}
+\end{table}
+  
+As we can clearly see from the experimental results, the improvement provided by the 
+cell list increases more than linearly with respect to the introduction of particles in the system. 
+This is due to the difference in complexity when 
+optimizing the calculations comparatively to going through each particles. The switch from 
+quadratic to linear complexity can be noticed in the observed results.
 
 \newpage
 \section{Conclusion}
